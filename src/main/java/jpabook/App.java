@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import jpabook.entity.*;
 import org.hibernate.Hibernate;
 
+import java.util.List;
+
 public class App {
     static EntityManagerFactory emf
             = Persistence.createEntityManagerFactory("jpabook");
@@ -12,25 +14,19 @@ public class App {
         EntityManager em = emf.createEntityManager();
         EntityTransaction tx = em.getTransaction();
             try {
-                saveMember();
-                // printUserAndTeam("member1");
-                //printMember("member1");
-                //printProxyMember("member1");
-                //proxyInitInDetachedMode("member1");
-                //proxyIdAccessTest();
-                //testGetReference();
-                //testProxyReturnedAfterFind();
-                //testProxyLazyRelation();
+                //saveMember();
+                tx.begin();
+                Parent parent = new Parent("부모1");
+                Child child1 = new Child("자식1");
+                Child child2 = new Child("자식2");
 
-                PersistenceUnitUtil persistenceUnitUtil = em.getEntityManagerFactory().getPersistenceUnitUtil();
-                Member member = em.getReference(Member.class, "member1");
-                boolean before = persistenceUnitUtil.isLoaded(member);
-                System.out.println("before = " + before);
-                Hibernate.initialize(member);
-                boolean after = persistenceUnitUtil.isLoaded(member);
-                System.out.println("after = " + after);
+                child1.setParent(parent); // 자식 -> 부모 연관관계 설정
+                child2.setParent(parent); // 자식 -> 부모 연관관계 설정
+                parent.getChildList().add(child1); // 부모 -> 자식 연관관계 설정
+                parent.getChildList().add(child2); // 부모 -> 자식 연관관계 설정
 
-
+                em.persist(parent);
+                tx.commit();
             }catch (Exception e){
                 tx.rollback();
                 e.printStackTrace();
@@ -44,21 +40,26 @@ public class App {
         EntityManager em = emf.createEntityManager();
         EntityTransaction tx = em.getTransaction();
         tx.begin();
-        Team team = new Team();
-        team.setId("team1");
-        team.setName("팀1");
-        em.persist(team);
+        Team team1 = new Team();
+        team1.setId("team1");
+        team1.setName("팀1");
+        em.persist(team1);
+
+        Team team2 = new Team();
+        team2.setId("team2");
+        team2.setName("팀2");
+        em.persist(team2);
 
         Member member1 = new Member();
         member1.setId("member1");
         member1.setUsername("회원1");
-        member1.setTeam(team);
+        member1.setTeam(team1);
         em.persist(member1);
 
         Member member2 = new Member();
         member2.setId("member2");
         member2.setUsername("회원2");
-        member2.setTeam(team);
+        member2.setTeam(team2);
         em.persist(member2);
 
         tx.commit();
